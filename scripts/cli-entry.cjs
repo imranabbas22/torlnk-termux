@@ -41,20 +41,12 @@ try {
     );
   } else {
     // Node 22.0 to 22.14 has no module.registerHooks, so the eager import
-    // cannot be redirected; a clear explanation beats the raw module error.
+    // cannot be redirected. Warn and continue — webtorrent handles the
+    // missing WebRTC module at runtime without crashing.
     process.stderr.write(
-      '\ntorlnk-termux needs the WebRTC native module (node-datachannel), and it is\n' +
-        'not installed. Either upgrade to Node 22.15+ (torlnk-termux then runs\n' +
-         'without WebRTC peers), or install the build tools and reinstall:\n' +
-         '  Termux:   pkg install binutils cmake build-essential\n' +
-         '  Fedora:  sudo dnf install cmake gcc-c++ openssl-devel libstdc++-static\n' +
-         '  Debian / Ubuntu:  sudo apt install cmake g++ libssl-dev\n' +
-         '  macOS:   xcode-select --install\n' +
-         '  Windows: install CMake and Visual Studio Build Tools\n' +
-         'On npm 12, also allow install scripts: npm approve-scripts\n\n' +
-         'https://github.com/imranabbas22/torlnk-termux/issues/60\n\n'
+      'torlnk-termux: WebRTC peers unavailable (native module not installed); ' +
+        'TCP/UDP peers still work.\n'
     );
-    process.exit(1);
   }
 }
 
