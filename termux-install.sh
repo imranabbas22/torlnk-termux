@@ -1,22 +1,18 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# torlink — Termux (Android) one-command installer
-# Installs Node.js, makes storage accessible, and sets up torlink.
+# torlnk-termux — Termux (Android) installer
+# Installs Node.js and torlnk-termux globally.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/imranabbas22/torlnk-termux/main/termux-install.sh | bash
-#
-# Or after cloning:
-#   bash termux-install.sh
 
 set -e
 
 # ── helpers ──────────────────────────────────────────────────────────────
-BOLD='\033[1m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 info()  { printf "${CYAN}*${NC} %s\n" "$*"; }
 ok()    { printf "${GREEN}✓${NC} %s\n" "$*"; }
@@ -24,9 +20,9 @@ warn()  { printf "${YELLOW}⚠${NC} %s\n" "$*"; }
 fail()  { printf "${RED}✗${NC} %s\n" "$*"; exit 1; }
 
 header() {
-  printf "\n${BOLD}╔══════════════════════════════════════════╗${NC}\n"
-  printf "${BOLD}║      torlink — Termux Installer          ║${NC}\n"
-  printf "${BOLD}╚══════════════════════════════════════════╝${NC}\n\n"
+  printf "\n\033[1m╔══════════════════════════════════════════╗\033[0m\n"
+  printf "\033[1m║   torlnk-termux — Installer              ║\033[0m\n"
+  printf "\033[1m╚══════════════════════════════════════════╝\033[0m\n\n"
 }
 
 # ── detect Termux ────────────────────────────────────────────────────────
@@ -43,8 +39,7 @@ pkg update -y 2>/dev/null || true
 # ── 2. Install Node.js ──────────────────────────────────────────────────
 info "Installing Node.js..."
 if command -v node &>/dev/null; then
-  CURRENT_NODE=$(node -v)
-  ok "Node.js $CURRENT_NODE already installed"
+  ok "Node.js $(node -v) already installed"
 else
   pkg install -y nodejs
   ok "Node.js $(node -v) installed"
@@ -60,55 +55,41 @@ fi
 if [ -d /data/data/com.termux/files/home/storage ]; then
   ok "Storage already accessible"
 else
-  info "Requesting storage access (for downloading to shared storage)..."
+  info "Requesting storage access..."
   termux-setup-storage 2>/dev/null || warn "Skip storage setup (not critical)"
 fi
 
-# ── 4. Install torlink ──────────────────────────────────────────────────
-info "Installing torlink globally via npm..."
-npm install -g torlnk 2>/dev/null && {
-  ok "torlink installed from npm registry"
+# ── 4. Install torlnk-termux globally ────────────────────────────────────
+info "Installing torlnk-termux globally via npm..."
+npm install -g github:imranabbas22/torlnk-termux && {
+  ok "torlnk-termux installed"
 } || {
-  warn "torlink not yet on npm registry under this fork."
-  warn "Installing from GitHub instead..."
-  npm install -g github:imranabbas22/torlnk-termux 2>/dev/null && {
-    ok "torlink installed from GitHub"
+  warn "Install failed. Trying with --ignore-scripts..."
+  npm install -g --ignore-scripts github:imranabbas22/torlnk-termux && {
+    ok "torlnk-termux installed (--ignore-scripts)"
   } || {
-    warn "GitHub install failed. Trying local install..."
-    cd "$(dirname "$0")" 2>/dev/null || cd ~
-    if [ -f package.json ]; then
-      npm install -g . && ok "torlink installed from local source"
-    else
-      fail "Could not install torlink. Try: npm install -g torlnk"
-    fi
+    fail "Could not install torlnk-termux. Check your internet connection."
   }
 }
 
 # ── 5. WebRTC note ──────────────────────────────────────────────────────
 printf "\n"
-info "${BOLD}WebRTC on Termux${NC}"
-info "The WebRTC native module (node-datachannel) rarely compiles on Android."
-info "This is fine — torlink falls back to TCP/uTP and DHT seamlessly."
-info "Downloads work; you just won't connect to WebRTC-only peers."
+info "WebRTC on Termux: native module rarely compiles — this is normal."
+info "torlnk-termux falls back to TCP/uTP and DHT automatically."
 printf "\n"
 
 # ── 6. Verify ───────────────────────────────────────────────────────────
-if command -v torlnk &>/dev/null; then
+if command -v torlnk-termux &>/dev/null; then
   printf "\n"
-  printf "${GREEN}${BOLD}╔══════════════════════════════════════════╗${NC}\n"
-  printf "${GREEN}${BOLD}║  torlink is ready!                       ║${NC}\n"
-  printf "${GREEN}${BOLD}╚══════════════════════════════════════════╝${NC}\n"
+  printf "${GREEN}\033[1m╔══════════════════════════════════════════╗\033[0m\n"
+  printf "${GREEN}\033[1m║  torlnk-termux is ready!                 ║\033[0m\n"
+  printf "${GREEN}\033[1m╚══════════════════════════════════════════╝\033[0m\n"
   printf "\n"
-  printf "  Just run:  ${BOLD}torlnk${NC}\n"
+  printf "  Just run:  \033[1mtorlnk-termux\033[0m\n"
   printf "\n"
   printf "  Downloads save to:  ~/Downloads/torlink/\n"
-  printf "\n"
-  printf "  To change the download folder, press ${BOLD}o${NC} inside torlink.\n"
-  printf "  To browse shared storage:  ${BOLD}o${NC} → enter ${YELLOW}~/storage/downloads/torlink${NC}\n"
-  printf "\n"
-  printf "  First time? Press ${BOLD}?${NC} inside torlink for help.\n"
+  printf "  Press \033[1m?\033[0m inside torlnk-termux for help.\n"
   printf "\n"
 else
-  warn "torlnk not found on PATH — try starting a new Termux session."
-  warn "Or run:  npx torlnk"
+  warn "torlnk-termux not found on PATH — try starting a new Termux session."
 fi

@@ -10,22 +10,19 @@ Finding a torrent these days sucks. One site is a minefield of fake download but
 
 torlink lives in your terminal, zero setup, nothing to configure. One search checks a short curated list of reputable sources at once, and whatever you pick downloads straight to your phone.
 
-## Usage on Termux
+## Install on Termux
 
-From **Termux**, just run:
-
-```sh
-npx github:imranabbas22/torlnk-termux
-```
-
-Or install globally:
+Open **Termux** and run:
 
 ```sh
+pkg install nodejs -y
 npm install -g github:imranabbas22/torlnk-termux
 torlnk-termux
 ```
 
-> **First run may take 1-2 min** while native modules compile. WebRTC warnings are normal — torlink falls back to TCP/uTP and DHT seamlessly.
+That's it. The global install puts the `torlnk-termux` command on your PATH.
+
+> **First run may take 1-2 min** while native modules try to compile. You'll see deprecation warnings from npm — those are harmless. WebRTC warnings are normal too.
 
 ## Termux notes
 
@@ -34,6 +31,12 @@ torlnk-termux
 - **Downloads** — Defaults to `~/Downloads/torlink/`. Change anytime with the `o` key.
 - **WebRTC** — Native module rarely compiles on Android. torlink works fine over TCP/uTP and DHT.
 - **First time?** Press `?` inside torlink for the full keybinding list.
+
+## Uninstall
+
+```sh
+npm uninstall -g torlnk-termux
+```
 
 ## Headless
 
