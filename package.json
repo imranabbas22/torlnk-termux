@@ -16,7 +16,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "prepare": "npm run build",
     "dev": "tsx src/index.tsx",
     "build": "tsup",
     "postbuild": "node scripts/postbuild.cjs",
