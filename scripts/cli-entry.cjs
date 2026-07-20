@@ -17,16 +17,16 @@ if (major < 22) {
 // requires node-datachannel's native binary, which only install scripts
 // download; npm 12 skips those scripts by default, so the binary is often
 // absent and the eager import would kill startup. When it cannot load,
-// resolve webrtc-polyfill to an inert stub instead: simple-peer then reports
+// redirect webrtc-polyfill to an inert stub: simple-peer then reports
 // WEBRTC_SUPPORT = false and downloads run on TCP/uTP and DHT peers alone.
-try {
-  require('node-datachannel');
-} catch (err) {
+var redirectWebrtc = function () {
+  var path = require('node:path');
+  var stubPath = path.join(__dirname, 'webrtc-stub.mjs');
   var Module = require('node:module');
+
+  // Node 22.15+: use registerHooks (the official API)
   if (typeof Module.registerHooks === 'function') {
-    var stubUrl = require('node:url')
-      .pathToFileURL(require('node:path').join(__dirname, 'webrtc-stub.mjs'))
-      .href;
+    var stubUrl = require('node:url').pathToFileURL(stubPath).href;
     Module.registerHooks({
       resolve: function (specifier, context, nextResolve) {
         if (specifier === 'webrtc-polyfill') {
@@ -35,19 +35,30 @@ try {
         return nextResolve(specifier, context);
       },
     });
-    process.stderr.write(
-      'torlnk-termux: WebRTC peers unavailable (native module not installed); ' +
-        'TCP/UDP peers still work. https://github.com/imranabbas22/torlnk-termux/issues/60\n'
-    );
-  } else {
-    // Node 22.0 to 22.14 has no module.registerHooks, so the eager import
-    // cannot be redirected. Warn and continue — webtorrent handles the
-    // missing WebRTC module at runtime without crashing.
-    process.stderr.write(
-      'torlnk-termux: WebRTC peers unavailable (native module not installed); ' +
-        'TCP/UDP peers still work.\n'
-    );
+    return;
   }
+
+  // Node 22.0-22.14: intercept CJS resolution so node-datachannel never loads.
+  // This also catches the ESM import chain (webrtc-polyfill -> node-datachannel)
+  // because Node's ESM loader falls back to CJS for bare specifiers in node_modules.
+  var stubCjs = path.join(__dirname, 'webrtc-stub.cjs');
+  var origResolve = Module._resolveFilename;
+  Module._resolveFilename = function (request, parent, isMain, options) {
+    if (request === 'webrtc-polyfill' || request === 'node-datachannel') {
+      return stubCjs;
+    }
+    return origResolve.call(this, request, parent, isMain, options);
+  };
+};
+
+try {
+  require('node-datachannel');
+} catch (err) {
+  redirectWebrtc();
+  process.stderr.write(
+    'torlnk-termux: WebRTC peers unavailable (native module not installed); ' +
+      'TCP/UDP peers still work. https://github.com/imranabbas22/torlnk-termux/issues/60\n'
+  );
 }
 
 import('./index.js').catch(function (err) {

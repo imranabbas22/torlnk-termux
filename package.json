@@ -9,7 +9,8 @@
   "files": [
     "dist",
     "preview",
-    "scripts/ensure-webrtc.cjs"
+    "scripts/ensure-webrtc.cjs",
+    "scripts/webrtc-stub.cjs"
   ],
   "engines": {
     "node": ">=22"
