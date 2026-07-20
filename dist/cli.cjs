@@ -1,8 +1,24 @@
 #!/usr/bin/env node
 'use strict';
 
+// Debug: print to file on Termux so we can see where it dies
+var fs = require('node:fs');
+var logFile = require('node:path').join(require('node:os').tmpdir(), 'torlnk-termux-debug.log');
+function log(msg) {
+  var line = new Date().toISOString() + ' ' + msg + '\n';
+  try { fs.appendFileSync(logFile, line); } catch {}
+}
+log('cli.cjs started');
+log('argv: ' + JSON.stringify(process.argv));
+log('node: ' + process.versions.node);
+log('platform: ' + process.platform);
+log('cwd: ' + process.cwd());
+log('__dirname: ' + __dirname);
+
 var major = parseInt(process.versions.node.split('.')[0], 10);
+log('node major version: ' + major);
 if (major < 22) {
+  log('ERROR: node version too old, exiting');
   process.stderr.write(
     '\ntorlnk-termux requires Node.js v22 or later.\n' +
      'You are running v' + process.versions.node + '.\n\n' +
@@ -54,14 +70,20 @@ var redirectWebrtc = function () {
 try {
   require('node-datachannel');
 } catch (err) {
+  log('node-datachannel require failed: ' + (err.message || err));
   redirectWebrtc();
+  log('webrtc redirect installed');
   process.stderr.write(
     'torlnk-termux: WebRTC peers unavailable (native module not installed); ' +
       'TCP/UDP peers still work. https://github.com/imranabbas22/torlnk-termux/issues/60\n'
   );
 }
 
-import('./index.js').catch(function (err) {
+log('about to import index.js');
+import('./index.js').then(function () {
+  log('index.js loaded successfully');
+}).catch(function (err) {
+  log('index.js FAILED: ' + (err && err.stack ? err.stack : String(err || 'unknown error')));
   process.stderr.write('\ntorlnk-termux failed to start:\n');
   process.stderr.write('  ' + (err && err.stack ? err.stack : String(err || 'unknown error')) + '\n');
   process.exit(1);
@@ -69,9 +91,14 @@ import('./index.js').catch(function (err) {
 
 // Catch any stray unhandled rejections or exceptions
 process.on('unhandledRejection', function (err) {
+  log('unhandled rejection: ' + String(err));
   process.stderr.write('\ntorlnk-termux: unhandled rejection: ' + String(err) + '\n');
 });
 process.on('uncaughtException', function (err) {
+  log('uncaught exception: ' + (err.stack || err.message));
   process.stderr.write('\ntorlnk-termux: uncaught exception: ' + (err.stack || err.message) + '\n');
   process.exit(1);
+});
+process.on('exit', function (code) {
+  log('process exiting with code: ' + code);
 });
