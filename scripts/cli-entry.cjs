@@ -62,6 +62,16 @@ try {
 }
 
 import('./index.js').catch(function (err) {
-  process.stderr.write(String((err && err.message) || err) + '\n');
+  process.stderr.write('\ntorlnk-termux failed to start:\n');
+  process.stderr.write('  ' + (err && err.stack ? err.stack : String(err || 'unknown error')) + '\n');
+  process.exit(1);
+});
+
+// Catch any stray unhandled rejections or exceptions
+process.on('unhandledRejection', function (err) {
+  process.stderr.write('\ntorlnk-termux: unhandled rejection: ' + String(err) + '\n');
+});
+process.on('uncaughtException', function (err) {
+  process.stderr.write('\ntorlnk-termux: uncaught exception: ' + (err.stack || err.message) + '\n');
   process.exit(1);
 });
