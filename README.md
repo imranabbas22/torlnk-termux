@@ -16,7 +16,7 @@ Open **Termux** and run:
 
 ```sh
 pkg install nodejs -y
-npm install -g github:imranabbas22/torlnk-termux
+npm install -g --ignore-scripts github:imranabbas22/torlnk-termux
 torlnk-termux
 ```
 
